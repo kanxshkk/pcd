@@ -1,77 +1,67 @@
 nfa = [
-    4,# 0
-    ['A', 'B', 'C', 'D'],  # array of states 1
-    3,  # number of alphabets 2 
-    ['a', 'b', 'c'],  # ip 3 
-    'A',  # start state 4 
+    9,# 0
+    ['1','2','3','4','5','6','7','8','9','10','11'],  # array of states 1
+    2,  # number of alphabets 2 
+    ['a', 'b'],  # ip 3 
+    '1',  # start state 4 
     1,  # number of final states 5 
-    ['D'],  # final states 6
-    7, #7
-    [['A', 'a', 'A'], ['A', 'e', 'B'], ['B', 'b', 'B'],
-     ['A', 'e', 'C'], ['C', 'c', 'C'], ['B', 'b', 'D'],
-     ['C', 'c', 'D']]# 8
+    ['11'],  # final states 6
+    13, #7
+    [['1','e','2'],['1','e','8'],['2','e','3'],['2','e','5'],
+     ['3','a','4'],['5','b','6'],['4','e','7'],['6','e','7'],
+     ['7','e','2'],['7','e','8'],['8','a','9'],['9','b','10'],['10','b','11'],
+     ]
+
 ]
 
 def Eclosure(q1):
     ecol=set()
     ecol.add(q1)
-    for i in range(len(nfa[8])):
-        if nfa[8][i][0]==q1 and nfa[8][i][1]=="e":
-            ecol.add(nfa[8][i][2])
+    for i in range(nfa[7]):
+        for j in range(nfa[7]):
+            
+            if (nfa[8][j][0]==q1 or nfa[8][j][0] in ecol) and nfa[8][j][1]=="e":
+                #print(ecol,nfa[8][j][0],nfa[8][j][2])
+                ecol.add(nfa[8][j][2])
     return ecol
 
-dfa_start = Eclosure(nfa[4])
-'''
-dfa_final = []
-for x in nfa[1]:#states
-    if x in nfa[6]:#final state
-        dfa_final.append(x)
-'''
-#makeeclosure dict for ez access
 epsilon_closure = dict()
+
 for x in nfa[1]:#states
     epsilon_closure[x] = Eclosure(x)
+#print(epsilon_closure)
 
-#dfa  
-    
-def trans(q1,ip):
-    q2=set()
-    for i in range(len(nfa[8])):
-        if nfa[8][i][0]==q1 and nfa[8][i][1]==ip:
-            q2.add(nfa[8][i][2])
-    return q2
-          
-def dfa_trans(q1,ip):
-    q2=set()
-    for i in q1:
-         q2= q2.union(trans(i,ip))
-    return q2
-    
-dfa_meta=[]
-dfa = {}
-q = []
-#here is a dfa for start state 
-for ip in nfa[3]:
-    a=set()
-    for i in dfa_trans(dfa_start,ip):
-        a=a.union(epsilon_closure[i])
-    q.append(a)
-    dfa[tuple(dfa_start)] =  a
-    print(ip)
-    print(dfa)
-    dfa_meta.append(dict(dfa))
+def ec(states):
+    ans=set()
+    for i in states:
+        ans= ans.union(epsilon_closure[i])
+    return ans
 
-# need to procee with same technique for all states with stack
-while (q!=[]):
-    if tuple(q[0]) in dfa_meta:
-        q.pop(0)
-    else:
-        for ip in nfa[3]:
-            a=set()
-            for i in dfa_trans(q[0],ip):
-                a=a.union(epsilon_closure[i])
-            q.append(a)
-            dfa[tuple(dfa_start)] =  a
-            print(ip)
-            print(dfa)
-            dfa_meta.append(dict(dfa))
+def move(states,ip):
+    union_op=set()
+    for state in states:
+        op=set()
+        ec_state = epsilon_closure[state]
+        for i in range(nfa[7]):
+            if nfa[8][i][0] in ec_state and nfa[8][i][1]==ip:
+                op.add(nfa[8][i][2])
+        union_op=union_op.union(op)
+    return union_op
+
+start_state = epsilon_closure[nfa[4]]
+
+current_dfa = [start_state,]
+
+'''
+move(start_state,"a")
+ec(move(start_state,'a'))
+'''  
+
+for state in current_dfa:
+    for ip in nfa[3]:
+        ans= ec(move(state,ip))
+        print(state,ip,ans)
+        if ans not in current_dfa:
+            current_dfa.append(ans)
+        
+    
